@@ -231,3 +231,8 @@ function grcp
     git commit -m (curl -s https://whatthecommit.com/index.txt)
     git push origin (git branch --show-current)
 end
+
+function cpy
+    pbcopy
+    echo "Copied to clipboard"
+end
