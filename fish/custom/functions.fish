@@ -226,3 +226,8 @@ function killport
         kill -9 $pid
     end
 end
+
+function grcp 
+    git commit -m (curl -s https://whatthecommit.com/index.txt)
+    git push origin (git branch --show-current)
+end
