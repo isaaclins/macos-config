@@ -1,5 +1,11 @@
-thefuck/__pycache__/settings.cpython-313.pyc
-raycast/config.json
+thefuck/
+raycast/
+gh/
+flutter/
+mise/
+copyq/
+spicetify/
+
 
 .DS_Store
 fish/fish_variables
