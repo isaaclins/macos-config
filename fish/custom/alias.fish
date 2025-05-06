@@ -10,10 +10,11 @@ abbr -a gp 'git push'
 abbr -a ga 'git add '
 abbr -a gaa 'git add .'
 abbr -a gpll 'git pull'
+
 # System utilities
-abbr -a ls 'ls -G'
 abbr -a ll 'ls -lhG'
-abbr -a la 'ls -lahG'
+abbr -a la 'ls -A'
+
 
 # open config
 abbr -a config 'cursor ~/.config/fish/'
