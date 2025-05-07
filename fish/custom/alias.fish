@@ -13,8 +13,7 @@ abbr -a gpll 'git pull'
 
 # System utilities
 abbr -a ll 'ls -lhG'
-abbr -a la 'ls -A'
-
+abbr -a l 'ls -A'
 
 # open config
 abbr -a config 'cursor ~/.config/fish/'
