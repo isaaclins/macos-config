@@ -32,5 +32,5 @@ thefuck --alias | source
 abbr -a f 'fuck'
 
 
-
-
+# Docker
+abbr -a ldocker 'lazydocker'
