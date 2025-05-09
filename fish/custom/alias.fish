@@ -33,4 +33,4 @@ abbr -a f 'fuck'
 
 
 # Docker
-abbr -a ldocker 'lazydocker'
+abbr -a ldk 'lazydocker'
