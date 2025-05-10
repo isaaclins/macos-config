@@ -34,3 +34,8 @@ abbr -a f 'fuck'
 
 # Docker
 abbr -a ldk 'lazydocker'
+
+
+# Python
+abbr -a py 'python3'
+abbr -a pip 'pip3'
