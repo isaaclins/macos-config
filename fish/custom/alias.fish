@@ -16,7 +16,7 @@ abbr -a ll 'ls -lhG'
 abbr -a l 'ls -A'
 
 # open config
-abbr -a config 'cursor ~/.config/fish/'
+abbr -a conf 'cursor ~/.config/fish/'
 
 abbr -a cur "cursor ."
 
@@ -35,7 +35,3 @@ abbr -a f 'fuck'
 # Docker
 abbr -a ldk 'lazydocker'
 
-
-# Python
-abbr -a py 'python3'
-abbr -a pip 'pip3'

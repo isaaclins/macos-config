@@ -207,9 +207,9 @@ function npr
     return 0
 end
 
-function killport
+function kp
     if test (count $argv) -eq 0
-        echo "Usage: killport <port>"
+        echo "Usage: kp <port>"
         return 1
     end
 
@@ -232,7 +232,7 @@ function grcp
     git push origin (git branch --show-current)
 end
 
-function cpy
+function copy
     pbcopy
     echo "Copied to clipboard"
 end
