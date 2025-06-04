@@ -90,3 +90,5 @@ end
 # ============================= Source Files ================================
 source ~/.config/fish/custom/alias.fish
 source ~/.config/fish/custom/functions.fish
+zoxide init fish | source
+source "$HOME/.cargo/env.fish"
