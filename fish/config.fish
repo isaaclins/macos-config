@@ -92,3 +92,9 @@ source ~/.config/fish/custom/alias.fish
 source ~/.config/fish/custom/functions.fish
 zoxide init fish | source
 source "$HOME/.cargo/env.fish"
+
+# Add custom scripts directory to PATH
+set -l custom_scripts_dir "/Users/isaaclins/.config/fish/custom/scripts"
+if not contains "$custom_scripts_dir" $fish_user_paths
+    set -U fish_user_paths "$custom_scripts_dir" $fish_user_paths
+end
