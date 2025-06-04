@@ -1,8 +1,8 @@
 # ============================= Useful Abbreviations ================================
 # Navigation shortcuts
-abbr -a .. 'cd ..'
-abbr -a ... 'cd ../..'
-abbr -a .... 'cd ../../..'
+abbr -a .. 'z ..'
+abbr -a ... 'z ../..'
+abbr -a .... 'z ../../..'
 
 # Git shortcuts
 abbr -a gs 'git status'
@@ -21,8 +21,8 @@ abbr -a conf 'cursor ~/.config/fish/'
 abbr -a cur "cursor ."
 
 # Reload config
-abbr -a reload 'source ~/.config/fish/config.fish && clear && echo (set_color green)"Config reloaded" (set_color normal)'
-abbr -a r 'source ~/.config/fish/config.fish && clear && echo (set_color green)"Config reloaded" (set_color normal)'
+abbr -a reload 'source ~/.config/fish/config.fish && clear && echo (set_color green)"⟳ RELOADED" (set_color normal)'
+abbr -a r 'source ~/.config/fish/config.fish && clear && echo (set_color green)"⟳ RELOADED" (set_color normal)'
 
 # Clear screen
 abbr -a c 'clear'
@@ -35,3 +35,25 @@ abbr -a f 'fuck'
 # Docker
 abbr -a ldk 'lazydocker'
 
+# Zoxide
+abbr -a cd 'z'
+abbr -a cdd 'z -'
+
+# Lazygit
+abbr -a lg 'lazygit'  
+
+# Neofetch
+abbr -a rcool 'source ~/.config/fish/config.fish && clear  && neofetch'
+
+# spicetify
+abbr -a spot 'spicetify restore backup apply & spicetify backup apply'
+
+# fzf
+abbr -a f 'fzf --preview "bat --style=numbers --color=always --line-range :500 {}"'
+
+# bat4cat
+abbr -a cat 'bat'
+
+
+# venv
+abbr -a venv 'source venv/bin/activate.fish'
