@@ -98,3 +98,4 @@ set -l custom_scripts_dir "/Users/isaaclins/.config/fish/custom/scripts"
 if not contains "$custom_scripts_dir" $fish_user_paths
     set -U fish_user_paths "$custom_scripts_dir" $fish_user_paths
 end
+set -x JAVA_HOME /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
