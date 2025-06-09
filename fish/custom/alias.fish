@@ -54,6 +54,5 @@ abbr -a f 'fzf --preview "bat --style=numbers --color=always --line-range :500 {
 # bat4cat
 abbr -a cat 'bat'
 
-
 # venv
 abbr -a venv 'source venv/bin/activate.fish'

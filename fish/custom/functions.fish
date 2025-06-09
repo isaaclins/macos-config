@@ -236,3 +236,11 @@ function copy
     pbcopy
     echo "Copied to clipboard"
 end
+
+
+function cports
+    set ip_address "127.0.0.1"
+    echo "Scanning ports on $ip_address..."
+    rustscan -a $ip_address -r 1-65535 --ulimit 65535 $extra_args | grep "open"
+end
+
