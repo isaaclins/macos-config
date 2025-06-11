@@ -1,8 +1,5 @@
 # ============================= Useful Abbreviations ================================
-# Navigation shortcuts
-abbr -a .. 'z ..'
-abbr -a ... 'z ../..'
-abbr -a .... 'z ../../..'
+
 
 
 # System utilities
@@ -37,6 +34,10 @@ abbr -a cur "cursor ."
 thefuck --alias | source
 abbr -a f 'fuck'
 
+# Navigation shortcuts
+abbr -a .. 'z ..'
+abbr -a ... 'z ../..'
+abbr -a .... 'z ../../..'
 
 # Docker
 abbr -a ldk 'lazydocker'
