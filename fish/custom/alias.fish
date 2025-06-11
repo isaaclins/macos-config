@@ -4,21 +4,11 @@ abbr -a .. 'z ..'
 abbr -a ... 'z ../..'
 abbr -a .... 'z ../../..'
 
-# Git shortcuts
-abbr -a gs 'git status'
-abbr -a gp 'git push'
-abbr -a ga 'git add '
-abbr -a gaa 'git add .'
-abbr -a gpll 'git pull'
 
 # System utilities
 abbr -a ll 'ls -lhG'
 abbr -a l 'ls -A'
 
-# open config
-abbr -a conf 'cursor ~/.config/fish/'
-
-abbr -a cur "cursor ."
 
 # Reload config
 abbr -a reload 'source ~/.config/fish/config.fish && clear && echo (set_color green)"⟳ RELOADED" (set_color normal)'
@@ -26,6 +16,22 @@ abbr -a r 'source ~/.config/fish/config.fish && clear && echo (set_color green)"
 
 # Clear screen
 abbr -a c 'clear'
+
+
+# ============================= Useful Abbreviations - full ================================
+
+if test "$USER" != "docker-dev"
+# Git shortcuts
+abbr -a gs 'git status'
+abbr -a gp 'git push'
+abbr -a ga 'git add '
+abbr -a gaa 'git add .'
+abbr -a gpll 'git pull'
+
+# open config
+abbr -a conf 'cursor ~/.config/fish/'
+
+abbr -a cur "cursor ."
 
 # The Fuck
 thefuck --alias | source
@@ -56,3 +62,4 @@ abbr -a cat 'bat'
 
 # venv
 abbr -a venv 'source venv/bin/activate.fish'
+end
