@@ -244,3 +244,48 @@ function cports
     rustscan -a $ip_address -r 1-65535 --ulimit 65535 $extra_args | grep "open"
 end
 
+function initdocker
+    argparse 's/start' 'm/minimal' -- $argv
+    or return
+
+    echo 'FROM debian:bookworm-slim' > Dockerfile
+    echo 'RUN apt-get update && apt-get install -y fish git curl ca-certificates build-essential procps file --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*' >> Dockerfile
+    echo 'ARG USER_UID=1000' >> Dockerfile
+    echo 'ARG USER_GID=$USER_UID' >> Dockerfile
+    echo 'RUN groupadd --gid $USER_GID docker-dev && useradd --uid $USER_UID --gid $USER_GID -m docker-dev && chsh -s /usr/bin/fish docker-dev' >> Dockerfile
+    echo 'WORKDIR /home/docker-dev' >> Dockerfile
+    echo 'COPY . .config/fish' >> Dockerfile
+    echo 'RUN chown -R docker-dev:docker-dev .config' >> Dockerfile
+    echo 'USER docker-dev' >> Dockerfile
+    echo 'ENV SHELL=/usr/bin/fish' >> Dockerfile
+    if set -q _flag_minimal
+        echo 'ENV PATH="/home/docker-dev/.linuxbrew/bin:/home/docker-dev/.linuxbrew/sbin:${PATH}"' >> Dockerfile
+    else
+        echo 'ENV PATH="/home/docker-dev/.linuxbrew/bin:/home/docker-dev/.linuxbrew/sbin:/home/docker-dev/.cargo/bin:${PATH}"' >> Dockerfile
+        echo 'RUN curl --proto '\''=https'\'' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y' >> Dockerfile
+    end
+    echo 'RUN git clone https://github.com/Homebrew/brew.git /home/docker-dev/.linuxbrew' >> Dockerfile
+    if set -q _flag_minimal
+        echo 'RUN /home/docker-dev/.linuxbrew/bin/brew install zoxide' >> Dockerfile
+    else
+        echo 'RUN /home/docker-dev/.linuxbrew/bin/brew install thefuck zoxide' >> Dockerfile
+    end
+    echo 'RUN mkdir -p .config/fish/conf.d && echo '\''eval "$(/home/docker-dev/.linuxbrew/bin/brew shellenv)"'\'' > .config/fish/conf.d/brew.fish' >> Dockerfile
+    echo 'SHELL ["/usr/bin/fish", "-l", "-c"]' >> Dockerfile
+    echo 'CMD ["fish"]' >> Dockerfile
+    echo "================================================"
+    echo "🚀 Dockerfile created successfully."
+    echo "================================================"
+    echo "#!/bin/bash" > start.sh
+    echo "docker rm -f fish-dev 2>/dev/null || true" >> start.sh
+    echo "docker build --network=host --no-cache -t fish-dev -f Dockerfile \"\$HOME/.config/fish\"" >> start.sh
+    echo "docker run -it --rm fish-dev" >> start.sh
+    chmod +x start.sh
+    echo "================================================"
+    echo "🚀 docker starting script created successfully."
+    echo "================================================"
+    if set -q _flag_start
+        echo "🚀 Starting docker container..."
+        ./start.sh
+    end
+end
