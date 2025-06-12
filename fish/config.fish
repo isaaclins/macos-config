@@ -165,12 +165,12 @@ if test "$USER" != "docker-dev"
     zoxide init fish | source
 else
     echo "🚀 Test mode is enabled. Only sourcing BareBones files..."
+    clear
     source ~/.config/fish/custom/alias.fish
     source ~/.config/fish/custom/functions.fish
-    zoxide init fish | source
 end
 
 
 # Add custom scripts directory to PATH
-set -l custom_scripts_dir "/Users/isaaclins/.config/fish/custom/scripts"
+set -l custom_scripts_dir (dirname (status --current-filename))/custom/scripts
 
