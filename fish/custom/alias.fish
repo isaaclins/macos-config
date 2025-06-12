@@ -64,3 +64,21 @@ abbr -a cat 'bat'
 # venv
 abbr -a venv 'source venv/bin/activate.fish'
 end
+
+if test "$USER" = "docker-dev"
+    # The Fuck
+    if command -sq thefuck
+        thefuck --alias | source
+        abbr -a f 'fuck'
+    end
+
+    # bat -> cat
+    if command -sq bat
+        abbr -a cat 'bat'
+    end
+
+    # Lazygit
+    if command -sq lazygit
+        abbr -a lg 'lazygit'
+    end
+end
