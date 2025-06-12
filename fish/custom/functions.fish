@@ -245,11 +245,42 @@ function cports
 end
 
 function initdocker
-    argparse 's/start' 'm/minimal' -- $argv
-    or return
+    set -l autostart 0
+    set -l packages
+    set -l copy_paths
+
+    set -l argv_copy $argv
+    while count $argv_copy > 0
+        set arg $argv_copy[1]
+        set -e argv_copy[1]
+
+        switch $arg
+            case '-a' '--autostart'
+                set autostart 1
+            case '-p' '--package'
+                if count $argv_copy > 0
+                    set -a packages $argv_copy[1]
+                    set -e argv_copy[1]
+                else
+                    echo "Error: -p/--package requires an argument" >&2
+                    return 1
+                end
+            case '-c' '--copy'
+                if count $argv_copy > 0
+                    set -a copy_paths $argv_copy[1]
+                    set -e argv_copy[1]
+                else
+                    echo "Error: -c/--copy requires an argument" >&2
+                    return 1
+                end
+            case '*'
+                echo "Error: Unknown option $arg" >&2
+                return 1
+        end
+    end
 
     echo 'FROM debian:bookworm-slim' > Dockerfile
-    echo 'RUN apt-get update && apt-get install -y fish git curl ca-certificates build-essential procps file --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*' >> Dockerfile
+    echo 'RUN apt-get update && apt-get install -y fish git curl ca-certificates procps file --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*' >> Dockerfile
     echo 'ARG USER_UID=1000' >> Dockerfile
     echo 'ARG USER_GID=$USER_UID' >> Dockerfile
     echo 'RUN groupadd --gid $USER_GID docker-dev && useradd --uid $USER_UID --gid $USER_GID -m docker-dev && chsh -s /usr/bin/fish docker-dev' >> Dockerfile
@@ -258,18 +289,15 @@ function initdocker
     echo 'RUN chown -R docker-dev:docker-dev .config' >> Dockerfile
     echo 'USER docker-dev' >> Dockerfile
     echo 'ENV SHELL=/usr/bin/fish' >> Dockerfile
-    if set -q _flag_minimal
-        echo 'ENV PATH="/home/docker-dev/.linuxbrew/bin:/home/docker-dev/.linuxbrew/sbin:${PATH}"' >> Dockerfile
-    else
-        echo 'ENV PATH="/home/docker-dev/.linuxbrew/bin:/home/docker-dev/.linuxbrew/sbin:/home/docker-dev/.cargo/bin:${PATH}"' >> Dockerfile
-        echo 'RUN curl --proto '\''=https'\'' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y' >> Dockerfile
+    echo 'ENV PATH="/home/docker-dev/.linuxbrew/bin:/home/docker-dev/.linuxbrew/sbin:/home/docker-dev/.cargo/bin:${PATH}"' >> Dockerfile
+    echo 'ENV HOMEBREW_NO_AUTO_UPDATE=1' >> Dockerfile
+    echo 'RUN git clone --depth 1 https://github.com/Homebrew/brew.git /home/docker-dev/.linuxbrew' >> Dockerfile
+    
+    if test (count $packages) -gt 0
+        set packages_str (string join " " $packages)
+        echo "RUN /home/docker-dev/.linuxbrew/bin/brew install $packages_str" >> Dockerfile
     end
-    echo 'RUN git clone https://github.com/Homebrew/brew.git /home/docker-dev/.linuxbrew' >> Dockerfile
-    if set -q _flag_minimal
-        echo 'RUN /home/docker-dev/.linuxbrew/bin/brew install zoxide' >> Dockerfile
-    else
-        echo 'RUN /home/docker-dev/.linuxbrew/bin/brew install thefuck zoxide' >> Dockerfile
-    end
+
     echo 'RUN mkdir -p .config/fish/conf.d && echo '\''eval "$(/home/docker-dev/.linuxbrew/bin/brew shellenv)"'\'' > .config/fish/conf.d/brew.fish' >> Dockerfile
     echo 'SHELL ["/usr/bin/fish", "-l", "-c"]' >> Dockerfile
     echo 'CMD ["fish"]' >> Dockerfile
@@ -279,12 +307,22 @@ function initdocker
     echo "#!/bin/bash" > start.sh
     echo "docker rm -f fish-dev 2>/dev/null || true" >> start.sh
     echo "docker build --network=host --no-cache -t fish-dev -f Dockerfile \"\$HOME/.config/fish\"" >> start.sh
-    echo "docker run -it --rm fish-dev" >> start.sh
+    
+    set docker_run_cmd "docker run -it --rm"
+    if test (count $copy_paths) -gt 0
+        for path in $copy_paths
+            set abspath (realpath $path)
+            set bname (basename $path)
+            set docker_run_cmd "$docker_run_cmd -v \"$abspath\":\"/home/docker-dev/$bname\""
+        end
+    end
+    set docker_run_cmd "$docker_run_cmd fish-dev"
+    echo $docker_run_cmd >> start.sh
     chmod +x start.sh
     echo "================================================"
     echo "🚀 docker starting script created successfully."
     echo "================================================"
-    if set -q _flag_start
+    if test $autostart -eq 1
         echo "🚀 Starting docker container..."
         ./start.sh
     end
