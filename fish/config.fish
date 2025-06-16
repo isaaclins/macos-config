@@ -174,3 +174,6 @@ end
 # Add custom scripts directory to PATH
 set -l custom_scripts_dir (dirname (status --current-filename))/custom/scripts
 
+
+# Created by `pipx` on 2025-06-16 20:28:54
+set PATH $PATH /Users/isaaclins/.local/bin

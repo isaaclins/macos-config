@@ -327,3 +327,70 @@ function initdocker
         ./start.sh
     end
 end
+
+
+function transcribe-yt
+    if test (count $argv) -lt 1
+        echo "Usage: transcribe-yt <youtube-url> [-t|-m|-l|-l2|-l3|-l3t]"
+        return 1
+    end
+
+    set url $argv[1]
+
+    # Default model
+    set model "tiny"
+
+    # Check if a model flag was provided
+    if test (count $argv) -ge 2
+        set model_flag $argv[2]
+
+        switch $model_flag
+            case '-t'
+                set model "tiny"
+            case '-m'
+                set model "medium"
+            case '-l'
+                set model "large"
+            case '-l2'
+                set model "large-v2"
+            case '-l3'
+                set model "large-v3"
+            case '-l3t'
+                set model "large-v3-turbo"
+            case '*'
+                echo "Error: Invalid model flag '$model_flag'"
+                return 1
+        end
+    end
+
+    set original_dir (pwd)
+    set tmpdir (mktemp -d)
+
+    cd $tmpdir
+
+    # Download audio only, best audio format
+    yt-dlp -x --audio-format mp3 --output "%(title)s.%(ext)s" $url
+
+    # Find downloaded mp3 file
+    set audio_file (ls *.mp3 | head -n1)
+
+    # Convert mp3 to wav
+    $HOME/.cache/transcribe_anything/static_ffmpeg/static_ffmpeg -y -i $audio_file -acodec pcm_s16le -ar 44100 -ac 1 audio.wav
+
+    # Transcribe using transcribe-anything with selected model
+    transcribe-anything audio.wav --device cpu --model $model
+
+    # Move output back to original directory with timestamp
+    set timestamp (date "+%Y%m%d-%H%M%S")
+    set output_dir "transcript_$timestamp"
+    mv text_output $original_dir/$output_dir
+
+    cd $original_dir
+    rm -rf $tmpdir
+
+    echo "Transcription complete. Output saved to: $output_dir"
+    return 0
+end
+
+
+
