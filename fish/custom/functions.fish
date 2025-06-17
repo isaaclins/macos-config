@@ -337,60 +337,46 @@ function transcribe-yt
 
     set url $argv[1]
 
-    # Default model
-    set model "tiny"
-
-    # Check if a model flag was provided
-    if test (count $argv) -ge 2
-        set model_flag $argv[2]
-
-        switch $model_flag
-            case '-t'
-                set model "tiny"
-            case '-m'
-                set model "medium"
-            case '-l'
-                set model "large"
-            case '-l2'
-                set model "large-v2"
-            case '-l3'
-                set model "large-v3"
-            case '-l3t'
-                set model "large-v3-turbo"
-            case '*'
-                echo "Error: Invalid model flag '$model_flag'"
-                return 1
-        end
+    # Pick model flag
+    set model tiny
+    switch $argv[2]
+        case -t; set model tiny
+        case -m; set model medium
+        case -l; set model large
+        case -l2; set model large-v2
+        case -l3; set model large-v3
+        case -l3t; set model large-v3-turbo
+        case ''; # no flag, default
+        case '*'
+            echo "Error: Invalid model flag '$argv[2]'"
+            return 1
     end
 
-    set original_dir (pwd)
-    set tmpdir (mktemp -d)
+    set orig_dir (pwd)
+    set tmp (mktemp -d)
+    cd $tmp
 
-    cd $tmpdir
+    echo "🎬 Downloading audio..."
+    yt-dlp -f bestaudio -x --audio-format mp3 --output "video.%(ext)s" $url
 
-    # Download audio only, best audio format
-    yt-dlp -x --audio-format mp3 --output "%(title)s.%(ext)s" $url
+    mv *.mp3 audio.mp3
 
-    # Find downloaded mp3 file
-    set audio_file (ls *.mp3 | head -n1)
+    echo "🎵 Converting to WAV..."
+    $HOME/.cache/transcribe_anything/static_ffmpeg/static_ffmpeg -y -i audio.mp3 -acodec pcm_s16le -ar 44100 -ac 1 audio.wav
 
-    # Convert mp3 to wav
-    $HOME/.cache/transcribe_anything/static_ffmpeg/static_ffmpeg -y -i $audio_file -acodec pcm_s16le -ar 44100 -ac 1 audio.wav
+    echo "🧠 Transcribing ($model)..."
+    transcribe-anything audio.wav --device cpu --model $model --no-fetch
 
-    # Transcribe using transcribe-anything with selected model
-    transcribe-anything audio.wav --device cpu --model $model
+    if test -d text_*
+        set outdir text_*
+        set ts (date "+%Y%m%d-%H%M%S")
+        set final "transcript_$ts"
+        mv $outdir $orig_dir/$final
+        echo "✅ Transcription complete! Output saved: $final"
+    else
+        echo "❌ Transcription failed — no output generated."
+    end
 
-    # Move output back to original directory with timestamp
-    set timestamp (date "+%Y%m%d-%H%M%S")
-    set output_dir "transcript_$timestamp"
-    mv text_output $original_dir/$output_dir
-
-    cd $original_dir
-    rm -rf $tmpdir
-
-    echo "Transcription complete. Output saved to: $output_dir"
-    return 0
+    cd $orig_dir
+    rm -rf $tmp
 end
-
-
-
