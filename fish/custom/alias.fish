@@ -53,7 +53,7 @@ abbr -a lg 'lazygit'
 abbr -a rcool 'source ~/.config/fish/config.fish && clear  && neofetch'
 
 # spicetify
-abbr -a spot 'spicetify restore backup apply & spicetify backup apply'
+abbr -a spot 'spicetify restore backup apply && spicetify backup apply'
 
 # fzf
 abbr -a f 'fzf --preview "bat --style=numbers --color=always --line-range :500 {}"'
