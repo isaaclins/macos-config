@@ -329,54 +329,27 @@ function initdocker
 end
 
 
-function transcribe-yt
+function testy
     if test (count $argv) -lt 1
-        echo "Usage: transcribe-yt <youtube-url> [-t|-m|-l|-l2|-l3|-l3t]"
+        echo "Usage: transcribe-yt <youtube-url> "
         return 1
     end
-
+    mkdir -p (pwd)/transcription
+    set -l UUID (uuidgen)
+    echo $UUID
+    set -l tmp_dir (pwd)/$UUID
+    echo $tmp_dir
+    mkdir -p $tmp_dir
     set url $argv[1]
+    cd $tmp_dir
 
-    # Pick model flag
-    set model tiny
-    switch $argv[2]
-        case -t; set model tiny
-        case -m; set model medium
-        case -l; set model large
-        case -l2; set model large-v2
-        case -l3; set model large-v3
-        case -l3t; set model large-v3-turbo
-        case ''; # no flag, default
-        case '*'
-            echo "Error: Invalid model flag '$argv[2]'"
-            return 1
-    end
+    transcribe-anything $url --device cpu 
 
-    set orig_dir (pwd)
-    set tmp (mktemp -d)
-    cd $tmp
-
-    echo "🎬 Downloading audio..."
-    yt-dlp -f bestaudio -x --audio-format mp3 --output "video.%(ext)s" $url
-
-    mv *.mp3 audio.mp3
-
-    echo "🎵 Converting to WAV..."
-    $HOME/.cache/transcribe_anything/static_ffmpeg/static_ffmpeg -y -i audio.mp3 -acodec pcm_s16le -ar 44100 -ac 1 audio.wav
-
-    echo "🧠 Transcribing ($model)..."
-    transcribe-anything audio.wav --device cpu --model $model --no-fetch
-
-    if test -d text_*
-        set outdir text_*
-        set ts (date "+%Y%m%d-%H%M%S")
-        set final "transcript_$ts"
-        mv $outdir $orig_dir/$final
-        echo "✅ Transcription complete! Output saved: $final"
-    else
-        echo "❌ Transcription failed — no output generated."
-    end
-
-    cd $orig_dir
-    rm -rf $tmp
+    cd "$(ls -d */ | head -n 1)"
+    cp out.txt ../../transcription/out.txt
+    echo FINAL DIRECTORY: (pwd)
+    rm -rf $tmp_dir
+    echo "================================================"
+    echo "         🚀 Transcription completed."
+    echo "================================================"
 end
