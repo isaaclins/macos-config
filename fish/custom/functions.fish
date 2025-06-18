@@ -329,7 +329,7 @@ function initdocker
 end
 
 
-function testy
+function yt2txt
     if test (count $argv) -lt 1
         echo "Usage: transcribe-yt <youtube-url> "
         return 1
