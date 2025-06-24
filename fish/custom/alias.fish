@@ -63,7 +63,12 @@ abbr -a cat 'bat'
 
 # venv
 abbr -a venv 'source venv/bin/activate.fish'
+
+# docker stop all
+abbr -a dstop 'docker stop $(docker ps -q)' 
+abbr -a dkill 'docker stop $(docker ps -q) | docker system prune -a --volumes -f'
 end
+
 
 if test "$USER" = "docker-dev"
     # The Fuck
@@ -82,3 +87,5 @@ if test "$USER" = "docker-dev"
         abbr -a lg 'lazygit'
     end
 end
+
+
