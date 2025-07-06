@@ -149,7 +149,6 @@ function fish_prompt
 end
 
 
-
 # ============================= Source Files (if in test mode, only source barebones files)================================
 
 # IF IN TEST MODE, SOURCE JUST NECESSARY FILES. IGNORE RUSTSCAN, JAVA, AND OTHER TOOLS.
@@ -158,7 +157,6 @@ if test "$USER" != "docker-dev"
     if not contains "$custom_scripts_dir" $fish_user_paths
         set -U fish_user_paths "$custom_scripts_dir" $fish_user_paths
     end
-    set -x JAVA_HOME /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
     source "$HOME/.cargo/env.fish"
     source ~/.config/fish/custom/alias.fish
     source ~/.config/fish/custom/functions.fish
