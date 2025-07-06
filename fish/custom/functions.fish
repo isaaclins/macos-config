@@ -353,3 +353,47 @@ function yt2txt
     echo "         🚀 Transcription completed."
     echo "================================================"
 end
+
+
+function java17
+    set -gx JAVA_HOME /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+
+    set -l clean_path
+    for dir in (string split : $PATH)
+        if not string match -qr "/openjdk@17/" -- $dir
+            if not string match -qr "/openjdk@21/" -- $dir
+                set clean_path $clean_path $dir
+            end
+        end
+    end
+
+    set -gx PATH $JAVA_HOME/bin $clean_path
+
+    echo "✅ Switched to Java 17 (Homebrew)"
+    which java
+    java -version
+end
+
+function java21
+    set -gx JAVA_HOME /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+
+    set -l clean_path
+    for dir in (string split : $PATH)
+        if not string match -qr "/openjdk@17/" -- $dir
+            if not string match -qr "/openjdk@21/" -- $dir
+                set clean_path $clean_path $dir
+            end
+        end
+    end
+
+    set -gx PATH $JAVA_HOME/bin $clean_path
+
+    echo "✅ Switched to Java 21 (Homebrew)"
+    which java
+    java -version
+end
+
+
+function markdown2pdf
+    echo "Usage: markdown2pdf <markdown-file>"
+end
