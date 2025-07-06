@@ -394,6 +394,3 @@ function java21
 end
 
 
-function markdown2pdf
-    echo "Usage: markdown2pdf <markdown-file>"
-end
