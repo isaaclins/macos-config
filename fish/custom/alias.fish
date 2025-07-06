@@ -5,7 +5,7 @@
 # System utilities
 abbr -a ll 'ls -lhG'
 abbr -a l 'ls -A'
-
+abbr -a fid 'ls | grep'
 
 # Reload config
 abbr -a reload 'source ~/.config/fish/config.fish && clear && echo (set_color green)"⟳ RELOADED" (set_color normal)'
@@ -87,5 +87,4 @@ if test "$USER" = "docker-dev"
         abbr -a lg 'lazygit'
     end
 end
-
 
