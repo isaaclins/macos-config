@@ -394,3 +394,58 @@ function java21
 end
 
 
+function setjava 
+    if test (count $argv) -lt 1
+        echo "Usage: setjava <version>"
+        echo "Example: setjava 17, setjava 21, etc."
+        return 1
+    end
+    
+    set java_version $argv[1]
+    
+    # Check if argument is a number
+    if not string match -qr '^\d+$' -- $java_version
+        echo "❌ Error: Version must be a number (e.g., 17, 21)"
+        return 1
+    end
+    
+    # Check if Java version is installed via Homebrew
+    set java_path "/opt/homebrew/opt/openjdk@$java_version"
+    if not test -d $java_path
+        echo "⚠️  Java $java_version is not installed via Homebrew."
+        echo -n "Would you like to install it? [y/N]: "
+        echo ""
+        echo "================================================"
+        read -l response
+        echo "================================================"
+        if test "$response" = "y" -o "$response" = "Y" -o "$response" = "yes"
+            echo "📦 Installing OpenJDK $java_version..."
+            if not brew install openjdk@$java_version
+                echo "❌ Failed to install OpenJDK $java_version"
+                return 1
+            end
+            echo "✅ OpenJDK $java_version installed successfully"
+        else
+            echo "❌ Installation cancelled"
+            return 1
+        end
+    end
+    
+    # Set JAVA_HOME
+    set -gx JAVA_HOME "$java_path/libexec/openjdk.jdk/Contents/Home"
+    
+    # Clean PATH of other OpenJDK versions
+    set -l clean_path
+    for dir in (string split : $PATH)
+        if not string match -qr "/openjdk@\d+/" -- $dir
+            set clean_path $clean_path $dir
+        end
+    end
+    
+    # Set new PATH with selected Java version
+    set -gx PATH $JAVA_HOME/bin $clean_path
+    
+    echo "✅ Switched to Java $java_version (Homebrew)"
+    which java
+    java -version
+end
