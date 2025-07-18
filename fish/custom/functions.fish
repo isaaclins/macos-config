@@ -240,8 +240,27 @@ end
 
 function cports
     set ip_address "127.0.0.1"
-    echo "Scanning ports on $ip_address..."
-    rustscan -a $ip_address -r 1-65535 --ulimit 65535 $extra_args | grep "open"
+    echo "Scanning ports..."
+
+    # Run rustscan and filter only the summary lines
+    set results (rustscan -a $ip_address -r 1-65535 --ulimit 65535 $extra_args | grep -E '^[0-9]+/tcp\s+open')
+
+    # Print table header
+    printf "| %-6s | %-8s | %-15s |\n" "port" "protocol" "service"
+    printf "|-%-6s-|-%-8s-|-%-15s-|\n" "------" "--------" "---------------"
+
+    # Print each result in table format
+    for line in $results
+        # Split the line into fields
+        set port_proto (echo $line | awk '{print $1}')
+        set port (echo $port_proto | cut -d'/' -f1)
+        set proto (echo $port_proto | cut -d'/' -f2)
+        set service (echo $line | awk '{print $3}')
+        if test -z "$service"
+            set service "unknown"
+        end
+        printf "| %-6s | %-8s | %-15s |\n" $port $proto $service
+    end
 end
 
 function initdocker
