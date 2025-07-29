@@ -428,3 +428,38 @@ function setjava
     which java
     java -version
 end
+
+function md2pdf
+    # Use xelatex and Arial Unicode MS font for better emoji and Unicode support
+    if test (count $argv) -lt 1
+        echo "Usage: md2pdf <input.md> [output.pdf]"
+        return 1
+    end
+
+    set input $argv[1]
+    if not test -f $input
+        echo "Error: File '$input' does not exist."
+        return 1
+    end
+
+    if not command -sq pandoc
+        echo "Error: pandoc is not installed. Please install pandoc to use this function."
+        return 1
+    end
+
+    if test (count $argv) -ge 2
+        set output $argv[2]
+    else
+        set output (string replace -r '\.md$' '.pdf' -- $input)
+    end
+
+    echo "Converting $input to $output ..."
+    # Use xelatex and Arial Unicode MS for broad Unicode/emoji support
+    pandoc "$input" -o "$output" --pdf-engine=xelatex -V mainfont="Arial Unicode MS"
+    if test $status -eq 0
+        echo "✅ Successfully created $output"
+    else
+        echo "❌ Failed to create PDF."
+        return 1
+    end
+end
