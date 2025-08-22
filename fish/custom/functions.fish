@@ -101,110 +101,118 @@ function ghpr
     return 0
 end
 
-# Git Random Commit 
+# Git Random Commit (with error checking)
 function grc 
-    git commit -m (curl -s https://whatthecommit.com/index.txt)
+    if not command -sq curl
+        echo "Error: curl is required for random commit messages"
+        return 1
+    end
+    
+    set commit_msg (curl -s --max-time 5 https://whatthecommit.com/index.txt)
+    if test -z "$commit_msg"
+        set commit_msg "Random commit"
+    end
+    
+    git commit -m "$commit_msg"
 end
 
-# Git Random Push
+# Git Random Push (with error checking)
 function grp
+    if not command -sq curl
+        echo "Error: curl is required for random commit messages"
+        return 1
+    end
+    
+    set commit_msg (curl -s --max-time 5 https://whatthecommit.com/index.txt)
+    if test -z "$commit_msg"
+        set commit_msg "Random commit"
+    end
+    
     git add .
-    git commit -m (curl -s https://whatthecommit.com/index.txt)
+    git commit -m "$commit_msg"
     git push origin (git branch --show-current)
+end
+
+# Git Random Commit and Push (optimized version)
+function grcp 
+    if not command -sq curl
+        echo "Error: curl is required for random commit messages"
+        return 1
+    end
+    
+    set commit_msg (curl -s --max-time 5 https://whatthecommit.com/index.txt)
+    if test -z "$commit_msg"
+        set commit_msg "Random commit"
+    end
+    
+    git commit -m "$commit_msg"
+    git push origin (git branch --show-current)
+end
+
+# Helper function for creating new projects
+function _create_project
+    set repo_type $argv[1]
+    set project_name $argv[2]
+    set original_dir (pwd)
+    
+    # Validate arguments
+    if test -z "$project_name"
+        echo "Error: Project name is required"
+        return 1
+    end
+    
+    cd ~/Documents/github/ || return 1
+    
+    if test -d $project_name
+        echo "Error: Directory $project_name already exists"
+        cd $original_dir
+        return 1
+    end
+    
+    mkdir $project_name && cd $project_name || begin
+        echo "Error: Failed to create directory $project_name"
+        cd $original_dir
+        return 1
+    end
+    
+    # Call appropriate GitHub function based on repo type
+    set gh_function "gh$repo_type"
+    if not $gh_function
+        echo "Error: Repository creation failed. Cleaning up..."
+        cd $original_dir
+        rm -rf ~/Documents/github/$project_name
+        
+        # If the repo was created on GitHub but local setup failed, try to delete it
+        if command -sq gh
+            gh repo delete isaaclins/$project_name --yes 2>/dev/null
+        end
+        
+        return 1
+    end
+    
+    echo "Project successfully created: $project_name"
+    
+    # Open Cursor IDE at the current directory
+    if command -sq cursor
+        cursor .
+    else
+        # Try alternative methods
+        if command -sq open
+            open -a Cursor .
+        end
+    end
+    
+    return 0
 end
 
 # Create a new public project
 function npu
-    set original_dir (pwd)
-    set success 1
-    
-    cd ~/Documents/github/ || return 1
-    
-    if test -d $argv[1]
-        echo "Error: Directory $argv[1] already exists"
-        cd $original_dir
-        return 1
-    end
-    
-    mkdir $argv[1] && cd $argv[1] || begin
-        echo "Error: Failed to create directory $argv[1]"
-        cd $original_dir
-        return 1
-    end
-    
-    if not ghpu
-        echo "Error: Repository creation failed. Cleaning up..."
-        cd $original_dir
-        rm -rf ~/Documents/github/$argv[1]
-        
-        # If the repo was created on GitHub but local setup failed, try to delete it
-        if command -sq gh
-            gh repo delete isaaclins/$argv[1] --yes 2>/dev/null
-        end
-        
-        return 1
-    end
-    
-    echo "Project successfully created: $argv[1]"
-    
-    # Open Cursor IDE at the current directory
-    if command -sq cursor
-        cursor .
-    else
-        # Try alternative methods
-        if command -sq open
-            open -a Cursor .
-        end
-    end
-    
-    return 0
+    _create_project pu $argv[1]
 end
 
 # Create a new private project
 function npr
-    set original_dir (pwd)
-    set success 1
-    
-    cd ~/Documents/github/ || return 1
-    
-    if test -d $argv[1]
-        echo "Error: Directory $argv[1] already exists"
-        cd $original_dir
-        return 1
-    end
-    
-    mkdir $argv[1] && cd $argv[1] || begin
-        echo "Error: Failed to create directory $argv[1]"
-        cd $original_dir
-        return 1
-    end
-    
-    if not ghpr
-        echo "Error: Repository creation failed. Cleaning up..."
-        cd $original_dir
-        rm -rf ~/Documents/github/$argv[1]
-        
-        # If the repo was created on GitHub but local setup failed, try to delete it
-        if command -sq gh
-            gh repo delete isaaclins/$argv[1] --yes 2>/dev/null
-        end
-        
-        return 1
-    end
-    
-    echo "Project successfully created: $argv[1]"
-    
-    # Open Cursor IDE at the current directory
-    if command -sq cursor
-        cursor .
-    else
-        # Try alternative methods
-        if command -sq open
-            open -a Cursor .
-        end
-    end
-    
-    return 0
+    _create_project pr $argv[1]
 end
 
 function kp
@@ -233,17 +241,31 @@ function grcp
 end
 
 function copy
-    pbcopy
-    echo "Copied to clipboard"
+    if command -sq pbcopy
+        pbcopy
+        echo "Copied to clipboard"
+    else
+        echo "Error: pbcopy not available (macOS only)"
+        return 1
+    end
 end
 
-
 function cports
+    if not command -sq rustscan
+        echo "Error: rustscan is required for port scanning"
+        return 1
+    end
+    
     set ip_address "127.0.0.1"
-    echo "Scanning ports..."
+    echo "Scanning ports on $ip_address..."
 
     # Run rustscan and filter only the summary lines
     set results (rustscan -a $ip_address -r 1-65535 --ulimit 65535 $extra_args | grep -E '^[0-9]+/tcp\s+open')
+
+    if test -z "$results"
+        echo "No open ports found"
+        return 0
+    end
 
     # Print table header
     printf "| %-6s | %-8s | %-15s |\n" "port" "protocol" "service"
@@ -251,11 +273,11 @@ function cports
 
     # Print each result in table format
     for line in $results
-        # Split the line into fields
-        set port_proto (echo $line | awk '{print $1}')
-        set port (echo $port_proto | cut -d'/' -f1)
-        set proto (echo $port_proto | cut -d'/' -f2)
-        set service (echo $line | awk '{print $3}')
+        # Split the line into fields more efficiently
+        set port_proto (string split ' ' $line)[1]
+        set port (string split '/' $port_proto)[1]
+        set proto (string split '/' $port_proto)[2]
+        set service (string split ' ' $line)[3]
         if test -z "$service"
             set service "unknown"
         end
