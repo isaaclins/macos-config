@@ -21,62 +21,74 @@ if status is-interactive
 end
 
 # ============================== Custom Prompt ================================
-function fish_prompt
-    if test "$USER" != "docker-dev"
-        set_color -o cyan
-        echo -n "┌─["
-        
-        # Username@hostname
+function _prompt_user_info
+    # Username@hostname with appropriate colors
+    if test "$USER" = "docker-dev"
+        set_color -o red
+    else
         set_color -o yellow
-        echo -n $USER
-        set_color normal
-        set_color -o white
-        echo -n "@"
-        set_color -o blue
-        echo -n (hostname | cut -d. -f1)
-        
-        # Current directory
+    end
+    echo -n $USER
+    set_color normal
+    set_color -o white
+    echo -n "@"
+    set_color -o blue
+    echo -n (hostname | cut -d. -f1)
+end
+
+function _prompt_directory
+    # Current directory
+    set_color -o cyan
+    echo -n "]─["
+    set_color -o magenta
+    echo -n (basename (pwd))
+    set_color -o cyan
+    echo -n "]"
+end
+
+function _prompt_git_status
+    # Git status if applicable (cached for performance)
+    if command -sq git; and git rev-parse --is-inside-work-tree &>/dev/null
         set_color -o cyan
-        echo -n "]─["
-        set_color -o magenta
-        echo -n (basename (pwd))
-        set_color -o cyan
-        echo -n "]"
-        
-        # Git status if applicable
-        if command -sq git; and git rev-parse --is-inside-work-tree &>/dev/null
-            set_color -o cyan
-            echo -n "─["
-            set_color -o green
-            echo -n (git branch --show-current 2>/dev/null)
-            set_color -o cyan
-            echo -n "]"
+        echo -n "─["
+        set_color -o green
+        # Cache git branch to avoid repeated calls
+        if not set -q __fish_git_branch_cache; or test (math (date +%s) - $__fish_git_branch_time) -gt 5
+            set -g __fish_git_branch_cache (git branch --show-current 2>/dev/null)
+            set -g __fish_git_branch_time (date +%s)
         end
-        
-        # Time
-        set_color -o cyan
-        echo -n "─["
-        set_color -o white
-        echo -n (date "+%H:%M:%S")
+        echo -n $__fish_git_branch_cache
         set_color -o cyan
         echo -n "]"
-        
-        # Time it took to run the last command
+    end
+end
+
+function _prompt_time_info
+    # Time
+    set_color -o cyan
+    echo -n "─["
+    set_color -o white
+    echo -n (date "+%H:%M:%S")
+    set_color -o cyan
+    echo -n "]"
+    
+    # Command duration (only show if > 100ms to reduce noise)
+    if test $CMD_DURATION -gt 100
         set_color -o cyan
         echo -n "─["
         set_color -o cyan
-        printf "%.0fms" (math "$CMD_DURATION /1.0") # Convert to milliseconds, remove the x.000ms
+        printf "%.0fms" (math "$CMD_DURATION / 1.0")
         set_color -o cyan
         echo -n "]"
+    end
+end
 
-
-
-        # Command prompt
-        echo
-        set_color -o cyan
-        echo -n "└─"
-        
-        # User indicator
+function _prompt_user_indicator
+    # User indicator
+    if test "$USER" = "docker-dev"
+        set_color -o red
+        echo -n "⫸ "
+    else
         if fish_is_root_user
             set_color -o red
             echo -n "# "
@@ -84,94 +96,58 @@ function fish_prompt
             set_color -o cyan
             echo -n "⫸ "
         end
-        
-        set_color normal
-    else
-        set_color -o cyan
-        echo -n "┌─["
-        
-        # Username@hostname
-        set_color -o red
-        echo -n $USER
-        set_color normal
-        set_color -o white
-        echo -n "@"
-        set_color -o blue
-        echo -n (hostname | cut -d. -f1)
-        
-        # Current directory
-        set_color -o cyan
-        echo -n "]─["
-        set_color -o magenta
-        echo -n (basename (pwd))
-        set_color -o cyan
-        echo -n "]"
-        
-        # Git status if applicable
-        if command -sq git; and git rev-parse --is-inside-work-tree &>/dev/null
-            set_color -o cyan
-            echo -n "─["
-            set_color -o green
-            echo -n (git branch --show-current 2>/dev/null)
-            set_color -o cyan
-            echo -n "]"
-        end
-        
-        # Time
-        set_color -o cyan
-        echo -n "─["
-        set_color -o white
-        echo -n (date "+%H:%M:%S")
-        set_color -o cyan
-        echo -n "]"
-        
-        # Time it took to run the last command
-        set_color -o cyan
-        echo -n "─["
-        set_color -o cyan
-        printf "%.0fms" (math "$CMD_DURATION /1.0") # Convert to milliseconds, remove the x.000ms
-        set_color -o cyan
-        echo -n "]"
-
-
-
-        # Command prompt
-        echo
-        set_color -o cyan
-        echo -n "└─"
-        
-        # User indicator
-        set_color -o red
-        echo -n "⫸ "
-        
-        set_color normal
     end
+end
+
+function fish_prompt
+    # Top line
+    set_color -o cyan
+    echo -n "┌─["
+    
+    _prompt_user_info
+    _prompt_directory
+    _prompt_git_status
+    _prompt_time_info
+    
+    # Bottom line
+    echo
+    set_color -o cyan
+    echo -n "└─"
+    
+    _prompt_user_indicator
+    set_color normal
 end
 
 
 # ============================= Source Files (if in test mode, only source barebones files)================================
 
-# IF IN TEST MODE, SOURCE JUST NECESSARY FILES. IGNORE RUSTSCAN, JAVA, AND OTHER TOOLS.
+# Add custom scripts directory to PATH first
+set -l custom_scripts_dir (dirname (status --current-filename))/custom/scripts
 
+# IF IN TEST MODE, SOURCE JUST NECESSARY FILES. IGNORE RUSTSCAN, JAVA, AND OTHER TOOLS.
 if test "$USER" != "docker-dev"
     if not contains "$custom_scripts_dir" $fish_user_paths
         set -U fish_user_paths "$custom_scripts_dir" $fish_user_paths
     end
-    source "$HOME/.cargo/env.fish"
+    
+    # Source Rust environment if available
+    if test -f "$HOME/.cargo/env.fish"
+        source "$HOME/.cargo/env.fish"
+    end
+    
     source ~/.config/fish/custom/alias.fish
     source ~/.config/fish/custom/functions.fish
-    zoxide init fish | source
+    
+    # Initialize zoxide if available
+    if command -sq zoxide
+        zoxide init fish | source
+    end
 else
     echo "🚀 Test mode is enabled. Only sourcing BareBones files..."
     clear
     source ~/.config/fish/custom/alias.fish
     source ~/.config/fish/custom/functions.fish
 end
-
-
-# Add custom scripts directory to PATH
-set -l custom_scripts_dir (dirname (status --current-filename))/custom/scripts
-
 
 # Created by `pipx` on 2025-06-16 20:28:54
 set PATH $PATH /Users/isaaclins/.local/bin
