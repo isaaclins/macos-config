@@ -160,6 +160,7 @@ if test "$USER" != "docker-dev"
     source "$HOME/.cargo/env.fish"
     source ~/.config/fish/custom/alias.fish
     source ~/.config/fish/custom/functions.fish
+    # errors, TBD: source ~/.config/fish/custom/scripts/**
     zoxide init fish | source
 else
     echo "🚀 Test mode is enabled. Only sourcing BareBones files..."
@@ -174,4 +175,4 @@ set -l custom_scripts_dir (dirname (status --current-filename))/custom/scripts
 
 
 # Created by `pipx` on 2025-06-16 20:28:54
-set PATH $PATH /Users/isaaclins/.local/bin
+set PATH $PATH /Users/isaaclins/.local/bin $custom_scripts_dir

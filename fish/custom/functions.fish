@@ -463,3 +463,27 @@ function md2pdf
         return 1
     end
 end
+
+function toggle
+    if test (count $argv) -eq 0
+        echo "Usage: toggle <directory>"
+        return 1
+    end
+
+    set dir $argv[1]
+
+    # Check owner
+    set owner (stat -f "%Su" $dir)
+
+    if test $owner = (whoami)
+        # Owned by user → lock it
+        sudo chown root:wheel $dir
+        sudo chmod 700 $dir
+        echo "🔒 Locked $dir (root-only access)."
+    else
+        # Otherwise → unlock it
+        sudo chown (whoami):staff $dir
+        sudo chmod 700 $dir
+        echo "🔓 Unlocked $dir (owned by "(whoami)")."
+    end
+end
